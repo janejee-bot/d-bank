@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>D-MOOC 강좌 추천 · 학습 레벨 맞춤</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="design-tokens.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: var(--fs-body);
+      line-height: 1.65;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    p { margin: 0; text-wrap: pretty; }
+    h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-weight: 600; }
+    ul, ol { margin: 0; padding: 0; list-style: none; }
+
+    .app-shell {
+      width: min(100%, var(--artboard-w));
+      min-height: min(100dvh, var(--artboard-h));
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      padding-bottom: 88px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--container);
+      margin-inline: auto;
+      padding-inline: var(--gutter);
+    }
+
+    .display {
+      font-family: var(--font-display);
+      font-size: var(--fs-display);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+    .h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-h2);
+      line-height: 1.3;
+      letter-spacing: -0.015em;
+      font-weight: 700;
+    }
+    .h3 { font-size: var(--fs-h3); line-height: 1.35; letter-spacing: -0.01em; font-weight: 650; }
+    .lead { font-size: var(--fs-lead); color: var(--muted); max-width: 42ch; line-height: 1.7; }
+    .meta {
+      font-family: var(--font-body);
+      font-size: var(--fs-meta);
+      color: var(--muted);
+      letter-spacing: 0.01em;
+      font-weight: 500;
+    }
+    .num { font-family: var(--font-body); font-variant-numeric: tabular-nums; font-weight: 600; }
+    .eyebrow {
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      color: var(--accent);
+      margin: 0 0 var(--gap-sm);
+      font-weight: 600;
+    }
+
+    .topnav {
+      position: sticky; top: 0; z-index: 40;
+      background: color-mix(in oklch, var(--bg) 88%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topnav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: var(--gap-md); min-height: 64px; padding-block: 10px;
+    }
+    .brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--font-display); font-size: 20px; font-weight: 700;
+    }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 10px;
+      background: linear-gradient(135deg, #60a5fa, var(--accent));
+      color: var(--surface);
+      display: grid; place-items: center;
+      font-family: var(--font-body); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.02em; flex-shrink: 0;
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+    .brand-sub {
+      font-family: var(--font-body); font-size: 11px;
+      color: var(--muted); font-weight: 500; letter-spacing: 0.02em; margin-top: 2px;
+    }
+    .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .nav-link {
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      font-size: 14px; color: var(--muted); font-weight: 500;
+      transition: color .15s ease, background .15s ease;
+      min-height: 36px; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .nav-link:hover { color: var(--fg); background: var(--fg-soft); }
+    .nav-link.is-active { color: var(--fg); background: var(--surface); border: 1px solid var(--border); }
+    .nav-link:focus-visible, .btn:focus-visible, .path-card:focus-visible, .nav-toggle:focus-visible {
+      outline: none; box-shadow: var(--focus-ring);
+    }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+    .nav-toggle {
+      display: none; width: 44px; height: 44px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      align-items: center; justify-content: center;
+    }
+    .nav-toggle span {
+      display: block; width: 16px; height: 1.5px; background: var(--fg); position: relative;
+    }
+    .nav-toggle span::before, .nav-toggle span::after {
+      content: ""; position: absolute; left: 0; width: 16px; height: 1.5px; background: var(--fg);
+    }
+    .nav-toggle span::before { top: -5px; }
+    .nav-toggle span::after { top: 5px; }
+    .nav-drawer {
+      display: none; border-top: 1px solid var(--border);
+      padding: 12px var(--gutter) 16px; background: var(--bg);
+    }
+    .nav-drawer.is-open { display: block; }
+    .nav-drawer .nav-link { display: flex; width: 100%; padding: 12px 14px; min-height: 44px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: var(--control-h); padding: 0 18px;
+      border-radius: var(--radius); border: 1px solid transparent;
+      font-size: 14px; font-weight: 600; letter-spacing: 0.01em;
+      transition: background .15s ease, border-color .15s ease, color .15s ease, transform .05s ease;
+      white-space: nowrap;
+    }
+    .btn:active:not(:disabled):not(.is-disabled) { transform: translateY(1px); }
+    .btn:disabled, .btn.is-disabled {
+      opacity: 0.45; cursor: not-allowed; transform: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #60a5fa, var(--accent));
+      color: var(--surface); border-color: transparent;
+      box-shadow: 0 6px 16px color-mix(in oklch, var(--accent) 28%, transparent);
+    }
+    .btn-primary:hover:not(:disabled):not(.is-disabled) {
+      background: linear-gradient(135deg, #3b82f6, var(--accent-hover));
+      border-color: transparent; color: var(--surface);
+    }
+    .btn-secondary { background: var(--surface); color: var(--fg); border-color: var(--border); }
+    .btn-secondary:hover:not(:disabled):not(.is-disabled) {
+      border-color: color-mix(in oklch, var(--accent) 40%, var(--border));
+      color: var(--accent); background: var(--accent-soft);
+    }
+    .btn-sm { min-height: 36px; padding: 0 12px; font-size: 13px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+    .card-hover { transition: border-color .15s ease, box-shadow .2s ease; }
+    .card-hover:hover {
+      border-color: color-mix(in oklch, var(--fg) 18%, var(--border));
+      box-shadow: var(--shadow-soft);
+    }
+
+    .view { display: none; padding: var(--gap-xl) 0 var(--gap-2xl); }
+    .view.is-active { display: block; animation: viewIn .28s ease; }
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .hero {
+      display: grid; grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--gap-xl); align-items: stretch;
+      padding-top: var(--gap-md);
+    }
+    .hero-copy { display: flex; flex-direction: column; justify-content: center; gap: var(--gap-md); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+    .hero-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius-lg) + 4px);
+      padding: 28px;
+      box-shadow: var(--shadow-soft);
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .step-list { display: flex; flex-direction: column; gap: 14px; }
+    .step-item {
+      display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start;
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent-soft); color: var(--accent);
+      display: grid; place-items: center;
+      font-family: var(--font-body); font-size: 13px; font-weight: 700;
+    }
+    .step-item h3 { font-size: 15px; margin-bottom: 2px; }
+    .step-item p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    .path-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--gap-md); margin-top: var(--gap-xl);
+    }
+    .path-card {
+      text-align: left; display: flex; flex-direction: column; gap: 12px;
+      min-height: 100%; cursor: pointer; width: 100%;
+    }
+    .path-card .path-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--fg-soft); color: var(--fg);
+      display: grid; place-items: center;
+    }
+    .path-card p { color: var(--muted); font-size: 14px; flex: 1; }
+    .path-card .path-cta {
+      font-size: 13px; font-weight: 600; color: var(--fg);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .section-label {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 12px; margin: var(--gap-xl) 0 var(--gap-md);
+    }
+
+    .toast-root {
+      position: fixed; right: 20px; bottom: 20px; z-index: 70;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      min-width: 220px; max-width: 320px;
+      padding: 12px 16px; border-radius: var(--radius);
+      background: var(--fg); color: var(--surface);
+      font-size: 13px; font-weight: 500; line-height: 1.4;
+      box-shadow: var(--shadow-soft);
+      animation: toastIn .2s ease;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 980px) {
+      :root { --gutter: 24px; }
+      .hero { grid-template-columns: 1fr; }
+      .path-grid { grid-template-columns: 1fr 1fr; }
+      .nav-links, .nav-actions .btn-primary { display: none; }
+      .nav-toggle { display: inline-flex; }
+    }
+    @media (max-width: 640px) {
+      :root { --gutter: 16px; }
+      .path-grid { grid-template-columns: 1fr; }
+      .hero-actions .btn { width: 100%; }
+      .toast-root { right: 12px; bottom: 12px; left: 12px; }
+      .toast { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topnav">
+      <div class="container topnav-inner">
+        <a href="#home" class="brand" data-route="home">
+          <span class="brand-mark">DM</span>
+          <span class="brand-text">
+            D-MOOC
+            <span class="brand-sub">강좌 추천</span>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="주요 메뉴">
+          <a class="nav-link is-active" href="#home" data-route="home">홈</a>
+          <a class="nav-link" href="#survey" data-route="survey">설문</a>
+          <a class="nav-link" href="#browse" data-route="browse">탐색</a>
+          <a class="nav-link" href="#wishlist" data-route="wishlist">관심</a>
+          <a class="nav-link" href="#admin" data-route="admin">관리자</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button type="button" class="btn btn-primary btn-sm" data-route="survey">
+            레벨 설문
+          </button>
+          <button type="button" class="nav-toggle" id="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">
+            <span></span>
+          </button>
+        </div>
+      </div>
+      <div class="nav-drawer container" id="nav-drawer" hidden>
+        <a class="nav-link is-active" href="#home" data-route="home">홈</a>
+        <a class="nav-link" href="#survey" data-route="survey">설문</a>
+        <a class="nav-link" href="#browse" data-route="browse">탐색</a>
+        <a class="nav-link" href="#wishlist" data-route="wishlist">관심 목록</a>
+        <a class="nav-link" href="#admin" data-route="admin">관리자</a>
+      </div>
+    </header>
+
+    <main id="content">
+      <section class="view is-active" id="view-home" data-view="home">
+        <div class="container">
+          <div class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">D-MOOC 강좌 추천</p>
+              <h1 class="display">목표와 수준에 맞는<br />온라인 강좌를 3분 안에</h1>
+              <p class="lead">관심 분야·난이도·예산·주간 학습 시간을 입력하면 매칭 점수 상위 3개 강좌를 추천합니다. 비교하고, 관심에 저장하세요.</p>
+              <div class="hero-actions">
+                <button type="button" class="btn btn-primary" data-route="survey">학습 레벨 설문 시작</button>
+                <button type="button" class="btn btn-secondary" data-route="browse">강좌 둘러보기</button>
+              </div>
+            </div>
+            <aside class="hero-panel">
+              <p class="meta">HOW IT WORKS</p>
+              <h2 class="h3">맞춤 추천 흐름</h2>
+              <ol class="step-list">
+                <li class="step-item">
+                  <span class="step-num">01</span>
+                  <div>
+                    <h3>학습 조건 입력</h3>
+                    <p>목표, 관심 분야, 난이도, 예산, 주간 시간을 짧게 입력합니다.</p>
+                  </div>
+                </li>
+                <li class="step-item">
+                  <span class="step-num">02</span>
+                  <div>
+                    <h3>매칭 점수 산출</h3>
+                    <p>분야·난이도·예산·시간 적합도를 점수화해 상위 3개를 고릅니다.</p>
+                  </div>
+                </li>
+                <li class="step-item">
+                  <span class="step-num">03</span>
+                  <div>
+                    <h3>상세 · 비교 · 관심</h3>
+                    <p>커리큘럼을 확인하고 나란히 비교한 뒤 관심 목록에 남깁니다.</p>
+                  </div>
+                </li>
+              </ol>
+            </aside>
+          </div>
+
+          <div class="section-label">
+            <h2 class="h2">시작 경로</h2>
+            <p class="meta">CHOOSE A PATH</p>
+          </div>
+          <div class="path-grid">
+            <button type="button" class="card card-hover path-card" data-route="survey">
+              <span class="path-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/></svg>
+              </span>
+              <h3 class="h3">맞춤 추천</h3>
+              <p>학습 레벨 설문으로 조건에 맞는 상위 3개 강좌를 바로 받습니다.</p>
+              <span class="path-cta">설문 시작 →</span>
+            </button>
+            <button type="button" class="card card-hover path-card" data-route="browse">
+              <span class="path-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              </span>
+              <h3 class="h3">강좌 탐색</h3>
+              <p>분야·난이도·가격으로 필터링하며 전체 카탈로그를 훑어봅니다.</p>
+              <span class="path-cta">목록 보기 →</span>
+            </button>
+            <button type="button" class="card card-hover path-card" data-route="wishlist">
+              <span class="path-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.6-7 10-7 10z"/></svg>
+              </span>
+              <h3 class="h3">관심 목록</h3>
+              <p>저장해 둔 후보를 다시 열어 상세 확인과 비교로 좁혀 갑니다.</p>
+              <span class="path-cta">관심 열기 →</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-root" id="toast-root" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      var toastRoot = document.getElementById("toast-root");
+      var drawer = document.getElementById("nav-drawer");
+      var toggle = document.getElementById("nav-toggle");
+      var labels = {
+        home: "홈",
+        survey: "학습 레벨 설문",
+        browse: "강좌 탐색",
+        wishlist: "관심 목록",
+        admin: "관리자",
+        results: "추천 결과",
+        compare: "비교함",
+        detail: "강좌 상세"
+      };
+
+      function showToast(message) {
+        var el = document.createElement("div");
+        el.className = "toast";
+        el.textContent = message;
+        toastRoot.appendChild(el);
+        setTimeout(function () {
+          el.remove();
+        }, 2200);
+      }
+
+      function closeDrawer() {
+        if (!drawer || !toggle) return;
+        drawer.classList.remove("is-open");
+        drawer.hidden = true;
+        toggle.setAttribute("aria-expanded", "false");
+      }
+
+      function goRoute(route) {
+        if (!route || route === "home") {
+          closeDrawer();
+          return;
+        }
+        closeDrawer();
+        showToast((labels[route] || route) + " 화면은 다음 단계에서 연결됩니다.");
+      }
+
+      if (toggle && drawer) {
+        toggle.addEventListener("click", function () {
+          var open = !drawer.classList.contains("is-open");
+          drawer.classList.toggle("is-open", open);
+          drawer.hidden = !open;
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+      }
+
+      document.addEventListener("click", function (e) {
+        var target = e.target.closest("[data-route]");
+        if (!target) return;
+        var route = target.getAttribute("data-route");
+        if (route === "home") {
+          e.preventDefault();
+          closeDrawer();
+          return;
+        }
+        e.preventDefault();
+        goRoute(route);
+      });
+    })();
+  </script>
+</body>
+</html>
